@@ -1,6 +1,6 @@
 {
-  "versionCode": 7,
-  "versionName": "1.6",
+  "versionCode": 8,
+  "versionName": "1.7",
   "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play.apk",
-  "notes": "Nuevo diseño sencillo, texto grande, últimos vistos, control remoto y recuperación automática de señal."
+  "notes": "Catálogo argentino en una sola pantalla, categorías con filas horizontales, logos grandes y acceso directo a cada canal."
 }
