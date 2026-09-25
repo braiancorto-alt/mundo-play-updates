@@ -1,6 +1,6 @@
 {
-  "versionCode": 6,
-  "versionName": "1.5",
+  "versionCode": 7,
+  "versionName": "1.6",
   "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play.apk",
-  "notes": "Actualizaciones integradas y respaldo HLS."
+  "notes": "Nuevo diseño sencillo, texto grande, últimos vistos, control remoto y recuperación automática de señal."
 }
