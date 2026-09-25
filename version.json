@@ -1,6 +1,6 @@
 {
-  "versionCode": 9,
-  "versionName": "1.8",
+  "versionCode": 10,
+  "versionName": "1.9",
   "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play.apk",
-  "notes": "Catálogo exclusivo para Argentina y cambio automático entre las señales OPC.1 y OPC.2 dentro de un único canal."
+  "notes": "Cambio automático acelerado: si OPC.1 queda sin responder, Mundo Play pasa a OPC.2 sin intervención del usuario."
 }
