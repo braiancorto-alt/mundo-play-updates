@@ -1,6 +1,6 @@
 {
-  "versionCode": 8,
-  "versionName": "1.7",
+  "versionCode": 9,
+  "versionName": "1.8",
   "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play.apk",
-  "notes": "Catálogo argentino en una sola pantalla, categorías con filas horizontales, logos grandes y acceso directo a cada canal."
+  "notes": "Catálogo exclusivo para Argentina y cambio automático entre las señales OPC.1 y OPC.2 dentro de un único canal."
 }
