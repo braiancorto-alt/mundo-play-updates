@@ -1,6 +1,6 @@
 {
-  "versionCode": 18,
-  "versionName": "2.7-beta",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play-2.7-beta.apk",
-  "notes": "Versión beta de trabajo de Mundo Play."
+  "versionCode": 21,
+  "versionName": "2.10-beta",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play-2.10-beta.apk",
+  "notes": "Las categorías aparecen primero mientras el catálogo se actualiza en segundo plano."
 }
