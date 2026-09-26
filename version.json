@@ -1,6 +1,6 @@
 {
-  "versionCode": 12,
-  "versionName": "2.1",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play.apk",
-  "notes": "Apertura de canales más rápida, cambio automático entre OPC.1 y OPC.2, corrección de logos alternativos y 166 logos argentinos disponibles sin depender del servidor."
+  "versionCode": 18,
+  "versionName": "2.7-beta",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play-2.7-beta.apk",
+  "notes": "Versión beta de trabajo de Mundo Play."
 }
