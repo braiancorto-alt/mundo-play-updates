@@ -1,6 +1,6 @@
 {
-  "versionCode": 10,
-  "versionName": "1.9",
+  "versionCode": 12,
+  "versionName": "2.1",
   "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/Mundo-Play.apk",
-  "notes": "Cambio automático acelerado: si OPC.1 queda sin responder, Mundo Play pasa a OPC.2 sin intervención del usuario."
+  "notes": "Apertura de canales más rápida, cambio automático entre OPC.1 y OPC.2, corrección de logos alternativos y 166 logos argentinos disponibles sin depender del servidor."
 }
