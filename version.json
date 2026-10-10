@@ -1,6 +1,6 @@
 {
-  "versionCode": 79,
-  "versionName": "6.19-beta",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.19-beta/Mundo-Play-6.19-beta.apk",
-  "notes": "Rediseño moderno del aviso de actualización de Mundo Play."
+  "versionCode": 80,
+  "versionName": "6.20-beta",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.20-beta/Mundo-Play-6.20-beta.apk",
+  "notes": "Aviso de actualización adaptado para televisores: tarjeta más ancha y controles en línea para usar con el control remoto."
 }
