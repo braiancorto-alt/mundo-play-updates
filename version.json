@@ -1,6 +1,6 @@
 {
-  "versionCode": 84,
-  "versionName": "6.24-beta",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.24-beta/Mundo-Play-6.24-beta.apk",
-  "notes": "Mejoras de logos con iconos alternativos y respaldo local. La reproducción muestra qué fuente Xtream intenta y el error final identifica el canal. Solo se mantienen las tres listas acordadas; Power Signals está excluido."
+  "versionCode": 85,
+  "versionName": "6.25-beta",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.25-beta/Mundo-Play-6.25-beta.apk",
+  "notes": "Reproducción HLS para señales .m3u8. Logos de fuentes Xtream alternativas y respaldo local. Muestra la fuente en prueba y el canal si falla. Se mantienen las tres listas acordadas; Power Signals excluido."
 }
