@@ -1,6 +1,6 @@
 {
-  "versionCode": 81,
-  "versionName": "6.21-beta",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.21-beta/Mundo-Play-6.21-beta.apk",
-  "notes": "Pantalla principal adaptada para Android TV: navegación superior, categorías y carruseles horizontales, botones y canales fáciles de recorrer con el control remoto. La versión para celular conserva su diseño."
+  "versionCode": 82,
+  "versionName": "6.22-beta",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.22-beta/Mundo-Play-6.22-beta.apk",
+  "notes": "Tres servidores Xtream agregados con el mismo acceso guardado en la app. Catálogo filtrado a señales argentinas y reproducción asociada al servidor de origen. También se conserva la fuente anterior. En Ajustes se puede revisar qué fuentes conectaron."
 }
