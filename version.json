@@ -1,6 +1,6 @@
 {
-  "versionCode": 80,
-  "versionName": "6.20-beta",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.20-beta/Mundo-Play-6.20-beta.apk",
-  "notes": "Aviso de actualización adaptado para televisores: tarjeta más ancha y controles en línea para usar con el control remoto."
+  "versionCode": 81,
+  "versionName": "6.21-beta",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.21-beta/Mundo-Play-6.21-beta.apk",
+  "notes": "Pantalla principal adaptada para Android TV: navegación superior, categorías y carruseles horizontales, botones y canales fáciles de recorrer con el control remoto. La versión para celular conserva su diseño."
 }
