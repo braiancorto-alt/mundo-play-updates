@@ -1,6 +1,6 @@
 {
-  "versionCode": 83,
-  "versionName": "6.23-beta",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.23-beta/Mundo-Play-6.23-beta.apk",
-  "notes": "Catálogo ampliado con las categorías argentinas ESPN PRO, Deportes Premium, Cultura, Cine y Series, Infantiles, Entretenimiento y Novelas. Se elimina Power Signals y se mantienen solo las tres listas Xtream acordadas con el acceso ya guardado en la app."
+  "versionCode": 84,
+  "versionName": "6.24-beta",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.24-beta/Mundo-Play-6.24-beta.apk",
+  "notes": "Mejoras de logos con iconos alternativos y respaldo local. La reproducción muestra qué fuente Xtream intenta y el error final identifica el canal. Solo se mantienen las tres listas acordadas; Power Signals está excluido."
 }
