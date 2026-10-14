@@ -1,6 +1,6 @@
 {
-  "versionCode": 87,
-  "versionName": "6.27-beta",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.27-beta/Mundo-Play-6.27-beta.apk",
-  "notes": "Actualización de Mundo Play para probar la conexión de TV."
+  "versionCode": 91,
+  "versionName": "6.31-beta",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.31-beta/Mundo-Play-6.31-beta.apk",
+  "notes": "Orden de canales por popularidad en cada categoría. Consolida opciones duplicadas y cambia automáticamente a la señal alternativa si falla la primera."
 }
