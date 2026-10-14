@@ -1,6 +1,6 @@
 {
-  "versionCode": 91,
-  "versionName": "6.31-beta",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.31-beta/Mundo-Play-6.31-beta.apk",
-  "notes": "Orden de canales por popularidad en cada categoría. Consolida opciones duplicadas y cambia automáticamente a la señal alternativa si falla la primera."
+  "versionCode": 92,
+  "versionName": "6.32-beta",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.32-beta/Mundo-Play-6.32-beta.apk",
+  "notes": "Logos con marcos uniformes, búsqueda y favoritos ordenados como el catálogo y acceso VER TODOS con control remoto. Se mantienen categorías prioritarias y respaldo automático de señales."
 }
