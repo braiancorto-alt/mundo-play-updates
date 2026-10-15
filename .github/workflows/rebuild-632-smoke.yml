@@ -29,7 +29,7 @@ jobs:
 
       - name: Install Android platform 35
         shell: bash
-        run: "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35"
+        run: sdkmanager "platforms;android-35"
 
       - name: Download and verify the exact 6.32 APK
         shell: bash
