@@ -46,6 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           java -jar "$RUNNER_TEMP/apktool.jar" d -f -s "$RUNNER_TEMP/Mundo-Play-6.32-beta.apk" -o "$RUNNER_TEMP/mundo-play-decoded"
+          sed -n '1,6p' "$RUNNER_TEMP/mundo-play-decoded/AndroidManifest.xml"
           python3 - "$RUNNER_TEMP/mundo-play-decoded/AndroidManifest.xml" <<'PY'
           import pathlib, sys
           path = pathlib.Path(sys.argv[1])
