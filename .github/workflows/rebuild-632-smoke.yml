@@ -83,13 +83,13 @@ jobs:
 
       - name: Package decoded 6.32 base for beta editor work
         shell: bash
-        run: zip -qr "$RUNNER_TEMP/mundo-play-6.32-smali.zip" "$RUNNER_TEMP/mundo-play-decoded"
+        run: zip -qr "$RUNNER_TEMP/mundo-play-6.32-smali.zip" "$RUNNER_TEMP/mundo-play-decoded"/smali* "$RUNNER_TEMP/mundo-play-decoded/apktool.yml" "$RUNNER_TEMP/mundo-play-decoded/AndroidManifest.xml"
 
       - name: Upload decoded 6.32 base
         uses: actions/upload-artifact@v4
         with:
           name: mundo-play-6.32-smali-base
-          path: ${{ runner.temp }}/mundo-play-6.32-decoded.zip
+          path: ${{ runner.temp }}/mundo-play-6.32-smali.zip
           if-no-files-found: error
           retention-days: 7
 
