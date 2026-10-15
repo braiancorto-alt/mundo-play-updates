@@ -22,6 +22,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,18 +115,56 @@ public final class BetaEditor {
         }
     }
 
-    /** Used by the render callback so disabled channels never become cards or play targets. */
-    public static ArrayList<Object> filterChannels(Activity activity, String categoryId, List<?> items) {
+    /** Filter, reassign and order channels for a category before rendering. */
+    public static ArrayList<Object> filterChannels(final Activity activity, final String categoryId, List<?> items) {
         JSONObject root = read(activity);
-        JSONObject edits = root.optJSONObject("channels");
+        final JSONObject edits = root.optJSONObject("channels");
         JSONObject categories = root.optJSONObject("categories");
         JSONObject cat = categories == null ? null : categories.optJSONObject(categoryId);
-        ArrayList<Object> visible = new ArrayList<>();
+        final ArrayList<Object> visible = new ArrayList<>();
         if (cat != null && !cat.optBoolean("enabled", true)) return visible;
+        final LinkedHashMap<String, Object> selected = new LinkedHashMap<>();
+
         for (Object item : items) {
-            JSONObject edit = edits == null ? null : edits.optJSONObject(itemKey(item));
-            if (edit == null || edit.optBoolean("enabled", true)) visible.add(item);
+            String key = itemKey(item);
+            JSONObject edit = edits == null ? null : edits.optJSONObject(key);
+            String destination = edit == null ? categoryId : edit.optString("categoryId", categoryId);
+            if (categoryId.equals(destination) && (edit == null || edit.optBoolean("enabled", true))) {
+                selected.put(key, item);
+            }
         }
+        try {
+            Map<?, ?> all = (Map<?, ?>) getField(activity, "allItems");
+            synchronized (all) {
+                for (Object item : all.values()) {
+                    String key = itemKey(item);
+                    JSONObject edit = edits == null ? null : edits.optJSONObject(key);
+                    if (edit == null || !categoryId.equals(edit.optString("categoryId", "")) || !edit.optBoolean("enabled", true)) continue;
+                    if (!selected.containsKey(key)) selected.put(key, item);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        for (Map.Entry<String, Object> entry : selected.entrySet()) {
+            Object item = entry.getValue();
+            JSONObject edit = edits == null ? null : edits.optJSONObject(entry.getKey());
+            if (edit != null) {
+                String name = edit.optString("name", "");
+                String icon = edit.optString("icon", "");
+                if (!name.isEmpty()) setField(item, "name", name);
+                if (!icon.isEmpty()) setField(item, "icon", icon);
+            }
+            visible.add(item);
+        }
+        Collections.sort(visible, new Comparator<Object>() {
+            @Override public int compare(Object left, Object right) {
+                JSONObject le = edits == null ? null : edits.optJSONObject(itemKey(left));
+                JSONObject re = edits == null ? null : edits.optJSONObject(itemKey(right));
+                int lp = le == null ? 0 : le.optInt("position", 0);
+                int rp = re == null ? 0 : re.optInt("position", 0);
+                return lp < rp ? -1 : (lp == rp ? 0 : 1);
+            }
+        });
         return visible;
     }
 
@@ -248,19 +288,32 @@ public final class BetaEditor {
             Map<?, ?> all = (Map<?, ?>) getField(a, "allItems");
             synchronized (all) {
                 for (Object item : all.values()) {
-                    if (originalCategory.equalsIgnoreCase(field(item, "category"))) channels.put(itemKey(item), item);
+                    if (!originalCategory.equalsIgnoreCase(field(item, "category"))) continue;
+                    String key = itemKey(item);
+                    JSONObject edit = edits == null ? null : edits.optJSONObject(key);
+                    String destination = edit == null ? categoryId : edit.optString("categoryId", categoryId);
+                    if (categoryId.equals(destination)) channels.put(key, item);
                 }
             }
         } catch (Exception ignored) {}
         if (edits != null) {
-            java.util.Iterator<String> keys = edits.keys();
-            while (keys.hasNext()) {
-                String key = keys.next(); JSONObject edit = edits.optJSONObject(key);
+            java.util.Iterator<String> keysIt = edits.keys();
+            while (keysIt.hasNext()) {
+                String key = keysIt.next(); JSONObject edit = edits.optJSONObject(key);
                 if (edit != null && categoryId.equals(edit.optString("categoryId"))) channels.put(key, edit);
             }
         }
         if (channels.isEmpty()) { toast(a, "No hay canales cargados en esta categoría."); return; }
         final ArrayList<String> keys = new ArrayList<>(channels.keySet());
+        Collections.sort(keys, new Comparator<String>() {
+            @Override public int compare(String left, String right) {
+                JSONObject le = edits == null ? null : edits.optJSONObject(left);
+                JSONObject re = edits == null ? null : edits.optJSONObject(right);
+                int lp = le == null ? 0 : le.optInt("position", 0);
+                int rp = re == null ? 0 : re.optInt("position", 0);
+                return lp < rp ? -1 : (lp == rp ? 0 : 1);
+            }
+        });
         String[] labels = new String[keys.size()];
         for (int i = 0; i < keys.size(); i++) {
             Object value = channels.get(keys.get(i));
@@ -282,34 +335,111 @@ public final class BetaEditor {
         final String name = saved == null ? originalName : saved.optString("name", originalName);
         final String originalIcon = saved == null ? field(current, "icon") : saved.optString("originalIcon", field(current, "icon"));
         final boolean enabled = saved == null || saved.optBoolean("enabled", true);
-        String[] actions = {"✎   Cambiar nombre", "▣   Cambiar logo (URL)", enabled ? "◉   Ocultar canal" : "◉   Activar canal"};
+        String[] actions = {
+            "✎   Cambiar nombre",
+            "▣   Cambiar logo (URL)",
+            enabled ? "◉   Ocultar canal" : "◉   Activar canal",
+            "↑   Mover al principio",
+            "↓   Mover al final",
+            "⇄   Cambiar de categoría"
+        };
         showMenu(a, name, "EDITAR CANAL", actions, "←  Canales", new MenuHandler() {
             @Override public void select(int which) {
                 if (which == 0) prompt(a, "Nombre del canal", name, false, new ValueHandler() {
                     @Override public void accept(String value) {
-                        JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
-                        put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                        put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", value); put(x, "enabled", enabled);
+                        JSONObject r = read(a);
+                        JSONObject x = ensureChannelEdit(r, key, category, originalName, originalIcon, name);
+                        put(x, "categoryId", field(category, "id")); put(x, "name", value);
                         save(a, r); showChannels(a, category);
                     }
                 });
                 else if (which == 1) prompt(a, "URL del logo", saved == null ? originalIcon : saved.optString("icon", originalIcon), true, new ValueHandler() {
                     @Override public void accept(String value) {
-                        JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
-                        put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                        put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", name); put(x, "icon", value); put(x, "enabled", enabled);
+                        JSONObject r = read(a);
+                        JSONObject x = ensureChannelEdit(r, key, category, originalName, originalIcon, name);
+                        put(x, "categoryId", field(category, "id")); put(x, "icon", value);
                         save(a, r); showChannels(a, category);
                     }
                 });
                 else if (which == 2) {
-                    JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
-                    put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                    put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", saved == null ? "" : saved.optString("name", ""));
-                    put(x, "icon", saved == null ? "" : saved.optString("icon", "")); put(x, "enabled", !enabled);
+                    JSONObject r = read(a);
+                    JSONObject x = ensureChannelEdit(r, key, category, originalName, originalIcon, name);
+                    put(x, "categoryId", field(category, "id")); put(x, "enabled", !enabled);
                     save(a, r); showChannels(a, category);
-                }
+                } else if (which == 3 || which == 4) {
+                    JSONObject r = read(a);
+                    JSONObject x = ensureChannelEdit(r, key, category, originalName, originalIcon, name);
+                    String categoryId = field(category, "id");
+                    put(x, "categoryId", categoryId);
+                    put(x, "position", nextPosition(r, categoryId, which == 3));
+                    save(a, r); showChannels(a, category);
+                } else if (which == 5) showMoveTargets(a, category, key, originalName, originalIcon, name);
             }
         }, new Runnable() { @Override public void run() { showChannels(a, category); } });
+    }
+
+    private static JSONObject ensureChannelEdit(JSONObject root, String key, Object category,
+                                                String originalName, String originalIcon, String name) {
+        JSONObject channels = object(root, "channels");
+        JSONObject edit = object(channels, key);
+        if (!edit.has("originalName")) put(edit, "originalName", originalName);
+        if (!edit.has("originalIcon")) put(edit, "originalIcon", originalIcon);
+        if (!edit.has("originalCategory")) put(edit, "originalCategory", originalCategoryName(category, root));
+        if (!edit.has("categoryId")) put(edit, "categoryId", field(category, "id"));
+        if (!edit.has("name")) put(edit, "name", "");
+        if (!edit.has("icon")) put(edit, "icon", "");
+        if (!edit.has("enabled")) put(edit, "enabled", true);
+        if (!edit.has("position")) put(edit, "position", 0);
+        return edit;
+    }
+
+    private static int nextPosition(JSONObject root, String categoryId, boolean first) {
+        JSONObject edits = root.optJSONObject("channels");
+        int min = 0, max = 0;
+        if (edits != null) {
+            java.util.Iterator<String> keys = edits.keys();
+            while (keys.hasNext()) {
+                JSONObject edit = edits.optJSONObject(keys.next());
+                if (edit == null || !categoryId.equals(edit.optString("categoryId", ""))) continue;
+                int position = edit.optInt("position", 0);
+                if (position < min) min = position;
+                if (position > max) max = position;
+            }
+        }
+        return first ? min - 1 : max + 1;
+    }
+
+    private static void showMoveTargets(final Activity a, final Object category, final String key,
+                                        final String originalName, final String originalIcon, final String name) {
+        try {
+            List<?> categories = (List<?>) getField(a, "liveCategories");
+            final ArrayList<Object> targets = new ArrayList<>();
+            String currentId = field(category, "id");
+            JSONObject edits = read(a).optJSONObject("categories");
+            for (Object target : categories) {
+                if (currentId.equals(field(target, "id"))) continue;
+                targets.add(target);
+            }
+            if (targets.isEmpty()) { toast(a, "No hay otra categoría disponible."); return; }
+            String[] labels = new String[targets.size()];
+            for (int i = 0; i < targets.size(); i++) {
+                Object target = targets.get(i);
+                JSONObject edit = edits == null ? null : edits.optJSONObject(field(target, "id"));
+                labels[i] = displayCategory(target, edit);
+            }
+            showMenu(a, "Mover canal", name + " · elegí destino", labels, "←  Cancelar", new MenuHandler() {
+                @Override public void select(int which) {
+                    Object target = targets.get(which);
+                    JSONObject root = read(a);
+                    JSONObject edit = ensureChannelEdit(root, key, category, originalName, originalIcon, name);
+                    String targetId = field(target, "id");
+                    put(edit, "categoryId", targetId);
+                    put(edit, "position", nextPosition(root, targetId, false));
+                    save(a, root);
+                    showChannels(a, target);
+                }
+            }, new Runnable() { @Override public void run() { showChannelActions(a, category, key, read(a).optJSONObject("channels") == null ? null : read(a).optJSONObject("channels").optJSONObject(key)); } });
+        } catch (Exception e) { toast(a, "No se pudieron cargar las categorías."); }
     }
 
     private interface ValueHandler { void accept(String value); }
