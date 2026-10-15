@@ -1,6 +1,6 @@
 {
-  "versionCode": 15,
-  "versionName": "6.32-beta",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.32-beta/Mundo-Play-6.32-beta.apk",
-  "notes": "Logos con marcos uniformes, búsqueda y favoritos ordenados como el catálogo y acceso VER TODOS con control remoto. Se mantienen categorías prioritarias y respaldo automático de señales."
+  "versionCode": 95,
+  "versionName": "6.34-beta-editor",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.34-beta/Mundo-Play-6.34-beta-editor.apk",
+  "notes": "Editor beta con menús y formularios rediseñados para combinar con la identidad visual de Mundo Play."
 }
