@@ -25,9 +25,11 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: |
-            build-tools;35.0.0
-            platforms;android-35
+          packages: "build-tools;35.0.0"
+
+      - name: Install Android platform 35
+        shell: bash
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35"
 
       - name: Download and verify the exact 6.32 APK
         shell: bash
