@@ -39,6 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           curl -fL --retry 3 "https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar" -o "$RUNNER_TEMP/apktool.jar"
+          sha256sum "$RUNNER_TEMP/apktool.jar"
           echo "dbf930b076c6c9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423  $RUNNER_TEMP/apktool.jar" | sha256sum --check
 
       - name: Decode, bump test version, and rebuild
