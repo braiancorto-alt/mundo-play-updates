@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   rebuild:
@@ -93,6 +93,27 @@ jobs:
           test -n "$original_cert"
           test "$original_cert" = "$rebuilt_cert"
           rm -f "$RUNNER_TEMP/mundo-play.jks"
+
+      - name: Publish the beta release for in-app updates
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
+          Beta basada en Mundo Play 6.32.
+
+          - Editor beta en Ajustes para renombrar canales y categorías, cambiar logos y activar u ocultar elementos.
+          - Las personalizaciones se guardan en el dispositivo y se pueden restaurar.
+          - Conserva paquete y firma de la aplicación anterior.
+
+          Esta versión es de prueba; el editor se excluirá de la versión final.
+          NOTES
+          if gh release view v6.33-beta --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload v6.33-beta "$RUNNER_TEMP/Mundo-Play-6.33-beta-editor.apk" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create v6.33-beta "$RUNNER_TEMP/Mundo-Play-6.33-beta-editor.apk" --repo "$GITHUB_REPOSITORY" --title "Mundo Play 6.33 beta" --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease --target "$GITHUB_SHA"
+          fi
 
       - name: Package decoded 6.32 base for beta editor work
         shell: bash
