@@ -210,7 +210,7 @@ public final class BetaEditor {
                     if (which == copy.size()) { reset(a); return; }
                     showCategoryActions(a, copy.get(which));
                 }
-            }, null);
+            }, new Runnable() { @Override public void run() { refresh(a); } });
         } catch (Exception e) { toast(a, "No se pudo abrir el editor."); }
     }
 
@@ -226,13 +226,13 @@ public final class BetaEditor {
                     @Override public void accept(String value) {
                         JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
                         put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", value); put(edit, "enabled", enabled);
-                        save(a, root); refresh(a);
+                        save(a, root); showCategoryActions(a, category);
                     }
                 });
                 else if (which == 1) {
                     JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
                     put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", saved == null ? "" : saved.optString("name", "")); put(edit, "enabled", !enabled);
-                    save(a, root); refresh(a);
+                    save(a, root); showCategoryActions(a, category);
                 } else if (which == 2) showChannels(a, category);
             }
         }, new Runnable() { @Override public void run() { showCategories(a); } });
@@ -290,7 +290,7 @@ public final class BetaEditor {
                         JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
                         put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
                         put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", value); put(x, "enabled", enabled);
-                        save(a, r); refresh(a);
+                        save(a, r); showChannels(a, category);
                     }
                 });
                 else if (which == 1) prompt(a, "URL del logo", saved == null ? originalIcon : saved.optString("icon", originalIcon), true, new ValueHandler() {
@@ -298,7 +298,7 @@ public final class BetaEditor {
                         JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
                         put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
                         put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", name); put(x, "icon", value); put(x, "enabled", enabled);
-                        save(a, r); refresh(a);
+                        save(a, r); showChannels(a, category);
                     }
                 });
                 else if (which == 2) {
@@ -306,7 +306,7 @@ public final class BetaEditor {
                     put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
                     put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", saved == null ? "" : saved.optString("name", ""));
                     put(x, "icon", saved == null ? "" : saved.optString("icon", "")); put(x, "enabled", !enabled);
-                    save(a, r); refresh(a);
+                    save(a, r); showChannels(a, category);
                 }
             }
         }, new Runnable() { @Override public void run() { showChannels(a, category); } });
