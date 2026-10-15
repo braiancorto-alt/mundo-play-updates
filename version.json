@@ -1,6 +1,6 @@
 {
-  "versionCode": 95,
-  "versionName": "6.34-beta-editor",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.34-beta/Mundo-Play-6.34-beta-editor.apk",
-  "notes": "Editor beta con menús y formularios rediseñados para combinar con la identidad visual de Mundo Play."
+  "versionCode": 96,
+  "versionName": "6.35-beta-editor",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.35-beta/Mundo-Play-6.35-beta-editor.apk",
+  "notes": "El editor beta permanece abierto después de guardar cambios en canales y categorías."
 }
