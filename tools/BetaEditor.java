@@ -1,15 +1,16 @@
 package com.mundoplay.app;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.text.InputType;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -127,6 +128,67 @@ public final class BetaEditor {
         return visible;
     }
 
+    private interface MenuHandler { void select(int which); }
+
+    /** Branded modal used by every beta editor menu instead of Android's gray AlertDialog. */
+    private static void showMenu(final Activity a, String title, String subtitle, final String[] rows,
+                                 String footer, final MenuHandler handler, final Runnable footerAction) {
+        final Dialog dialog = new Dialog(a);
+        LinearLayout card = new LinearLayout(a);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(a, 18), dp(a, 18), dp(a, 18), dp(a, 12));
+        card.setBackground(shape(BG, Color.rgb(67, 67, 92), 22, a));
+
+        TextView heading = text(a, title, 21, Color.WHITE, true);
+        card.addView(heading, matchWrap());
+        TextView sub = text(a, subtitle == null ? "" : subtitle, 13, CYAN, true);
+        sub.setPadding(0, dp(a, 5), 0, dp(a, 12));
+        card.addView(sub, matchWrap());
+
+        ScrollView scroll = new ScrollView(a);
+        LinearLayout options = new LinearLayout(a);
+        options.setOrientation(LinearLayout.VERTICAL);
+        for (int i = 0; i < rows.length; i++) {
+            final int index = i;
+            TextView row = text(a, rows[i], 16, Color.WHITE, false);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(dp(a, 15), dp(a, 13), dp(a, 15), dp(a, 13));
+            row.setMinHeight(dp(a, 50));
+            row.setBackground(shape(Color.rgb(29, 29, 55), Color.rgb(58, 58, 84), 14, a));
+            LinearLayout.LayoutParams rowLp = matchWrap();
+            rowLp.bottomMargin = dp(a, 8);
+            options.addView(row, rowLp);
+            row.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) { dialog.dismiss(); handler.select(index); }
+            });
+        }
+        scroll.addView(options);
+        int maxHeight = (int) (a.getResources().getDisplayMetrics().heightPixels * 0.55f);
+        int desiredHeight = dp(a, Math.max(54, rows.length * 58));
+        card.addView(scroll, new LinearLayout.LayoutParams(-1, Math.min(maxHeight, desiredHeight)));
+
+        TextView close = text(a, footer == null ? "Cerrar" : footer, 15, CYAN, true);
+        close.setGravity(Gravity.CENTER);
+        close.setPadding(dp(a, 12), dp(a, 13), dp(a, 12), dp(a, 8));
+        card.addView(close, matchWrap());
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                dialog.dismiss();
+                if (footerAction != null) footerAction.run();
+            }
+        });
+
+        dialog.setContentView(card);
+        dialog.setCancelable(true);
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            dialog.getWindow().setDimAmount(0.68f);
+            dialog.getWindow().setLayout(a.getResources().getDisplayMetrics().widthPixels - dp(a, 32), -2);
+        }
+    }
+
     private static void showCategories(final Activity a) {
         try {
             List<?> categories = (List<?>) getField(a, "liveCategories");
@@ -142,41 +204,38 @@ public final class BetaEditor {
                 JSONObject edit = edits == null ? null : edits.optJSONObject(field(c, "id"));
                 labels[i] = displayCategory(c, edit) + ((edit != null && !edit.optBoolean("enabled", true)) ? "  ·  Oculta" : "");
             }
-            labels[copy.size()] = "Restaurar todos los cambios";
-            new AlertDialog.Builder(a).setTitle("Editor beta · Categorías")
-                .setItems(labels, new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface dialog, int which) {
-                        if (which == copy.size()) { reset(a); return; }
-                        showCategoryActions(a, copy.get(which));
-                    }
-                }).setNegativeButton("Cerrar", null).show();
+            labels[copy.size()] = "↺   Restaurar todos los cambios";
+            showMenu(a, "Editor beta", "CATEGORÍAS · " + copy.size(), labels, "Listo", new MenuHandler() {
+                @Override public void select(int which) {
+                    if (which == copy.size()) { reset(a); return; }
+                    showCategoryActions(a, copy.get(which));
+                }
+            }, null);
         } catch (Exception e) { toast(a, "No se pudo abrir el editor."); }
     }
 
     private static void showCategoryActions(final Activity a, final Object category) {
         final String id = field(category, "id");
         JSONObject edits = read(a).optJSONObject("categories");
-        JSONObject saved = edits == null ? null : edits.optJSONObject(id);
+        final JSONObject saved = edits == null ? null : edits.optJSONObject(id);
         final boolean enabled = saved == null || saved.optBoolean("enabled", true);
-        String[] actions = {"Cambiar nombre", enabled ? "Ocultar categoría" : "Activar categoría", "Editar canales", "Volver"};
-        new AlertDialog.Builder(a).setTitle(displayCategory(category, saved))
-            .setItems(actions, new DialogInterface.OnClickListener() {
-                @Override public void onClick(DialogInterface d, int which) {
-                    if (which == 0) prompt(a, "Nombre de categoría", displayCategory(category, saved), new ValueHandler() {
-                        @Override public void accept(String value) {
-                            JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
-                            put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", value); put(edit, "enabled", enabled);
-                            save(a, root); refresh(a);
-                        }
-                    });
-                    else if (which == 1) {
+        String[] actions = {"✎   Cambiar nombre", enabled ? "◉   Ocultar categoría" : "◉   Activar categoría", "▤   Editar canales"};
+        showMenu(a, displayCategory(category, saved), "OPCIONES DE CATEGORÍA", actions, "←  Categorías", new MenuHandler() {
+            @Override public void select(int which) {
+                if (which == 0) prompt(a, "Nombre de categoría", displayCategory(category, saved), false, new ValueHandler() {
+                    @Override public void accept(String value) {
                         JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
-                        put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", saved == null ? "" : saved.optString("name", "")); put(edit, "enabled", !enabled);
+                        put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", value); put(edit, "enabled", enabled);
                         save(a, root); refresh(a);
-                    } else if (which == 2) showChannels(a, category);
-                    else showCategories(a);
-                }
-            }).show();
+                    }
+                });
+                else if (which == 1) {
+                    JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
+                    put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", saved == null ? "" : saved.optString("name", "")); put(edit, "enabled", !enabled);
+                    save(a, root); refresh(a);
+                } else if (which == 2) showChannels(a, category);
+            }
+        }, new Runnable() { @Override public void run() { showCategories(a); } });
     }
 
     private static void showChannels(final Activity a, final Object category) {
@@ -208,15 +267,13 @@ public final class BetaEditor {
             JSONObject edit = value instanceof JSONObject ? (JSONObject) value : (edits == null ? null : edits.optJSONObject(keys.get(i)));
             String name = edit == null ? field(value, "name") : edit.optString("name", edit.optString("originalName", field(value, "name")));
             boolean active = edit == null || edit.optBoolean("enabled", true);
-            labels[i] = name + (active ? "" : "  ·  Oculto");
+            labels[i] = (active ? "●   " : "○   ") + name + (active ? "" : "  ·  Oculto");
         }
-        new AlertDialog.Builder(a).setTitle("Canales · " + displayCategory(category, root.optJSONObject("categories") == null ? null : root.optJSONObject("categories").optJSONObject(categoryId)))
-            .setItems(labels, new DialogInterface.OnClickListener() {
-                @Override public void onClick(DialogInterface d, int which) { showChannelActions(a, category, keys.get(which), channels.get(keys.get(which))); }
-            })
-            .setNegativeButton("Volver", new DialogInterface.OnClickListener() {
-                @Override public void onClick(DialogInterface d, int w) { showCategoryActions(a, category); }
-            }).show();
+        JSONObject categoryEdits = root.optJSONObject("categories");
+        JSONObject categoryEdit = categoryEdits == null ? null : categoryEdits.optJSONObject(categoryId);
+        showMenu(a, "Canales", displayCategory(category, categoryEdit) + " · " + keys.size(), labels, "←  Categoría", new MenuHandler() {
+            @Override public void select(int which) { showChannelActions(a, category, keys.get(which), channels.get(keys.get(which))); }
+        }, new Runnable() { @Override public void run() { showCategoryActions(a, category); } });
     }
 
     private static void showChannelActions(final Activity a, final Object category, final String key, Object current) {
@@ -225,49 +282,99 @@ public final class BetaEditor {
         final String name = saved == null ? originalName : saved.optString("name", originalName);
         final String originalIcon = saved == null ? field(current, "icon") : saved.optString("originalIcon", field(current, "icon"));
         final boolean enabled = saved == null || saved.optBoolean("enabled", true);
-        String[] actions = {"Cambiar nombre", "Cambiar logo (URL)", enabled ? "Ocultar canal" : "Activar canal", "Volver"};
-        new AlertDialog.Builder(a).setTitle(name)
-            .setItems(actions, new DialogInterface.OnClickListener() {
-                @Override public void onClick(DialogInterface d, int which) {
-                    if (which == 0) prompt(a, "Nombre del canal", name, new ValueHandler() {
-                        @Override public void accept(String value) {
-                            JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
-                            put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                            put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", value); put(x, "enabled", enabled);
-                            save(a, r); refresh(a);
-                        }
-                    });
-                    else if (which == 1) prompt(a, "URL del logo", saved == null ? originalIcon : saved.optString("icon", originalIcon), new ValueHandler() {
-                        @Override public void accept(String value) {
-                            JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
-                            put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                            put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", name); put(x, "icon", value); put(x, "enabled", enabled);
-                            save(a, r); refresh(a);
-                        }
-                    });
-                    else if (which == 2) {
+        String[] actions = {"✎   Cambiar nombre", "▣   Cambiar logo (URL)", enabled ? "◉   Ocultar canal" : "◉   Activar canal"};
+        showMenu(a, name, "EDITAR CANAL", actions, "←  Canales", new MenuHandler() {
+            @Override public void select(int which) {
+                if (which == 0) prompt(a, "Nombre del canal", name, false, new ValueHandler() {
+                    @Override public void accept(String value) {
                         JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
                         put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                        put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", saved == null ? "" : saved.optString("name", ""));
-                        put(x, "icon", saved == null ? "" : saved.optString("icon", "")); put(x, "enabled", !enabled);
+                        put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", value); put(x, "enabled", enabled);
                         save(a, r); refresh(a);
-                    } else showChannels(a, category);
+                    }
+                });
+                else if (which == 1) prompt(a, "URL del logo", saved == null ? originalIcon : saved.optString("icon", originalIcon), true, new ValueHandler() {
+                    @Override public void accept(String value) {
+                        JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
+                        put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
+                        put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", name); put(x, "icon", value); put(x, "enabled", enabled);
+                        save(a, r); refresh(a);
+                    }
+                });
+                else if (which == 2) {
+                    JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
+                    put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
+                    put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", saved == null ? "" : saved.optString("name", ""));
+                    put(x, "icon", saved == null ? "" : saved.optString("icon", "")); put(x, "enabled", !enabled);
+                    save(a, r); refresh(a);
                 }
-            }).show();
+            }
+        }, new Runnable() { @Override public void run() { showChannels(a, category); } });
     }
 
     private interface ValueHandler { void accept(String value); }
-    private static void prompt(Activity a, String title, String old, ValueHandler handler) {
-        EditText input = new EditText(a); input.setSingleLine(true); input.setText(old == null ? "" : old);
-        input.setSelection(input.getText().length()); input.setHint(title);
-        LinearLayout wrap = new LinearLayout(a); wrap.setPadding(dp(a, 20), dp(a, 8), dp(a, 20), 0); wrap.addView(input);
-        new AlertDialog.Builder(a).setTitle(title).setView(wrap).setNegativeButton("Cancelar", null)
-            .setPositiveButton("Guardar", new DialogInterface.OnClickListener() {
-                @Override public void onClick(DialogInterface d, int w) {
-                    String value = input.getText().toString().trim();
-                    if (value.isEmpty()) toast(a, "El valor no puede quedar vacío."); else handler.accept(value);
-                }
-            }).show();
+    private static void prompt(final Activity a, String title, String old, boolean url, final ValueHandler handler) {
+        final Dialog dialog = new Dialog(a);
+        LinearLayout card = new LinearLayout(a);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(a, 20), dp(a, 20), dp(a, 20), dp(a, 14));
+        card.setBackground(shape(BG, Color.rgb(67, 67, 92), 22, a));
+        TextView heading = text(a, title, 20, Color.WHITE, true);
+        card.addView(heading, matchWrap());
+        TextView sub = text(a, url ? "PEGÁ EL ENLACE DIRECTO DE LA IMAGEN" : "EDITOR DE CATÁLOGO", 12, CYAN, true);
+        sub.setPadding(0, dp(a, 5), 0, dp(a, 14));
+        card.addView(sub, matchWrap());
+        final EditText input = new EditText(a);
+        input.setSingleLine(true);
+        input.setInputType(url ? InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI : InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        input.setText(old == null ? "" : old);
+        input.setSelection(input.getText().length());
+        input.setHint(url ? "https://..." : "Escribí el nuevo valor");
+        input.setTextColor(Color.WHITE);
+        input.setHintTextColor(Color.rgb(165, 165, 185));
+        input.setTextSize(16);
+        input.setPadding(dp(a, 14), dp(a, 12), dp(a, 14), dp(a, 12));
+        input.setBackground(shape(Color.rgb(29, 29, 55), PURPLE, 14, a));
+        card.addView(input, matchWrap());
+        LinearLayout buttons = new LinearLayout(a);
+        buttons.setOrientation(LinearLayout.HORIZONTAL);
+        TextView cancel = actionText(a, "Cancelar", false);
+        TextView save = actionText(a, "Guardar", true);
+        buttons.addView(cancel, new LinearLayout.LayoutParams(0, dp(a, 48), 1));
+        buttons.addView(save, new LinearLayout.LayoutParams(0, dp(a, 48), 1));
+        LinearLayout.LayoutParams bLp = matchWrap(); bLp.topMargin = dp(a, 12);
+        card.addView(buttons, bLp);
+        cancel.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { dialog.dismiss(); } });
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                String value = input.getText().toString().trim();
+                if (value.isEmpty()) toast(a, "El valor no puede quedar vacío.");
+                else { dialog.dismiss(); handler.accept(value); }
+            }
+        });
+        dialog.setContentView(card);
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.getWindow().setLayout(a.getResources().getDisplayMetrics().widthPixels - dp(a, 32), -2);
+        }
+    }
+
+    private static TextView text(Activity a, String value, int size, int color, boolean bold) {
+        TextView v = new TextView(a); v.setText(value); v.setTextSize(size); v.setTextColor(color);
+        if (bold) v.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        return v;
+    }
+    private static TextView actionText(Activity a, String value, boolean primary) {
+        TextView v = text(a, value, 15, Color.WHITE, true); v.setGravity(Gravity.CENTER);
+        v.setBackground(shape(primary ? PURPLE : Color.rgb(29, 29, 55), primary ? PURPLE : Color.rgb(67, 67, 92), 14, a));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(a, 46));
+        lp.setMargins(dp(a, 4), dp(a, 4), dp(a, 4), dp(a, 4)); v.setLayoutParams(lp); return v;
+    }
+    private static LinearLayout.LayoutParams matchWrap() { return new LinearLayout.LayoutParams(-1, -2); }
+    private static GradientDrawable shape(int fill, int stroke, int radius, Activity a) {
+        GradientDrawable d = new GradientDrawable(); d.setColor(fill); d.setCornerRadius(dp(a, radius));
+        d.setStroke(dp(a, 1), stroke); return d;
     }
 
     private static void reset(Activity a) {
