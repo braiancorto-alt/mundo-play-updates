@@ -247,6 +247,16 @@ public final class BetaEditor {
     }
 
     private static void reset(Activity a) {
+        JSONObject categories = read(a).optJSONObject("categories");
+        if (categories != null) {
+            try {
+                List<?> live = (List<?>) getField(a, "liveCategories");
+                for (Object category : live) {
+                    JSONObject edit = categories.optJSONObject(field(category, "id"));
+                    if (edit != null) setField(category, "name", edit.optString("originalName", field(category, "name")));
+                }
+            } catch (Exception ignored) {}
+        }
         a.getSharedPreferences(PREFS, 0).edit().remove(KEY).apply();
         toast(a, "Se restauró el catálogo original."); refresh(a);
     }
