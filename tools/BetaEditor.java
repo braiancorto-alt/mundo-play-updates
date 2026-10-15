@@ -2,6 +2,7 @@ package com.mundoplay.app;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -50,7 +51,9 @@ public final class BetaEditor {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
         lp.setMargins(0, dp(activity, 8), 0, dp(activity, 8));
         parent.addView(row, lp);
-        row.setOnClickListener(v -> showCategories(activity));
+        row.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { showCategories(activity); }
+        });
     }
 
     /** Apply category-name overrides while keeping the source list intact for the editor. */
@@ -141,9 +144,11 @@ public final class BetaEditor {
             }
             labels[copy.size()] = "Restaurar todos los cambios";
             new AlertDialog.Builder(a).setTitle("Editor beta · Categorías")
-                .setItems(labels, (dialog, which) -> {
-                    if (which == copy.size()) { reset(a); return; }
-                    showCategoryActions(a, copy.get(which));
+                .setItems(labels, new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface dialog, int which) {
+                        if (which == copy.size()) { reset(a); return; }
+                        showCategoryActions(a, copy.get(which));
+                    }
                 }).setNegativeButton("Cerrar", null).show();
         } catch (Exception e) { toast(a, "No se pudo abrir el editor."); }
     }
@@ -155,18 +160,22 @@ public final class BetaEditor {
         final boolean enabled = saved == null || saved.optBoolean("enabled", true);
         String[] actions = {"Cambiar nombre", enabled ? "Ocultar categoría" : "Activar categoría", "Editar canales", "Volver"};
         new AlertDialog.Builder(a).setTitle(displayCategory(category, saved))
-            .setItems(actions, (d, which) -> {
-                if (which == 0) prompt(a, "Nombre de categoría", displayCategory(category, saved), value -> {
-                    JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
-                    put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", value); put(edit, "enabled", enabled);
-                    save(a, root); refresh(a);
-                });
-                else if (which == 1) {
-                    JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
-                    put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", saved == null ? "" : saved.optString("name", "")); put(edit, "enabled", !enabled);
-                    save(a, root); refresh(a);
-                } else if (which == 2) showChannels(a, category);
-                else showCategories(a);
+            .setItems(actions, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int which) {
+                    if (which == 0) prompt(a, "Nombre de categoría", displayCategory(category, saved), new ValueHandler() {
+                        @Override public void accept(String value) {
+                            JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
+                            put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", value); put(edit, "enabled", enabled);
+                            save(a, root); refresh(a);
+                        }
+                    });
+                    else if (which == 1) {
+                        JSONObject root = read(a), all = object(root, "categories"), edit = object(all, id);
+                        put(edit, "originalName", originalCategoryName(category, root)); put(edit, "name", saved == null ? "" : saved.optString("name", "")); put(edit, "enabled", !enabled);
+                        save(a, root); refresh(a);
+                    } else if (which == 2) showChannels(a, category);
+                    else showCategories(a);
+                }
             }).show();
     }
 
@@ -202,8 +211,12 @@ public final class BetaEditor {
             labels[i] = name + (active ? "" : "  ·  Oculto");
         }
         new AlertDialog.Builder(a).setTitle("Canales · " + displayCategory(category, root.optJSONObject("categories") == null ? null : root.optJSONObject("categories").optJSONObject(categoryId)))
-            .setItems(labels, (d, which) -> showChannelActions(a, category, keys.get(which), channels.get(keys.get(which))))
-            .setNegativeButton("Volver", (d, w) -> showCategoryActions(a, category)).show();
+            .setItems(labels, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int which) { showChannelActions(a, category, keys.get(which), channels.get(keys.get(which))); }
+            })
+            .setNegativeButton("Volver", new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int w) { showCategoryActions(a, category); }
+            }).show();
     }
 
     private static void showChannelActions(final Activity a, final Object category, final String key, Object current) {
@@ -214,26 +227,32 @@ public final class BetaEditor {
         final boolean enabled = saved == null || saved.optBoolean("enabled", true);
         String[] actions = {"Cambiar nombre", "Cambiar logo (URL)", enabled ? "Ocultar canal" : "Activar canal", "Volver"};
         new AlertDialog.Builder(a).setTitle(name)
-            .setItems(actions, (d, which) -> {
-                if (which == 0) prompt(a, "Nombre del canal", name, value -> {
-                    JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
-                    put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                    put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", value); put(x, "enabled", enabled);
-                    save(a, r); refresh(a);
-                });
-                else if (which == 1) prompt(a, "URL del logo", saved == null ? originalIcon : saved.optString("icon", originalIcon), value -> {
-                    JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
-                    put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                    put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", name); put(x, "icon", value); put(x, "enabled", enabled);
-                    save(a, r); refresh(a);
-                });
-                else if (which == 2) {
-                    JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
-                    put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
-                    put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", saved == null ? "" : saved.optString("name", ""));
-                    put(x, "icon", saved == null ? "" : saved.optString("icon", "")); put(x, "enabled", !enabled);
-                    save(a, r); refresh(a);
-                } else showChannels(a, category);
+            .setItems(actions, new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int which) {
+                    if (which == 0) prompt(a, "Nombre del canal", name, new ValueHandler() {
+                        @Override public void accept(String value) {
+                            JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
+                            put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
+                            put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", value); put(x, "enabled", enabled);
+                            save(a, r); refresh(a);
+                        }
+                    });
+                    else if (which == 1) prompt(a, "URL del logo", saved == null ? originalIcon : saved.optString("icon", originalIcon), new ValueHandler() {
+                        @Override public void accept(String value) {
+                            JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
+                            put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
+                            put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", name); put(x, "icon", value); put(x, "enabled", enabled);
+                            save(a, r); refresh(a);
+                        }
+                    });
+                    else if (which == 2) {
+                        JSONObject r = read(a), e = object(r, "channels"), x = object(e, key);
+                        put(x, "categoryId", field(category, "id")); put(x, "originalCategory", originalCategoryName(category, r));
+                        put(x, "originalName", originalName); put(x, "originalIcon", originalIcon); put(x, "name", saved == null ? "" : saved.optString("name", ""));
+                        put(x, "icon", saved == null ? "" : saved.optString("icon", "")); put(x, "enabled", !enabled);
+                        save(a, r); refresh(a);
+                    } else showChannels(a, category);
+                }
             }).show();
     }
 
@@ -243,7 +262,12 @@ public final class BetaEditor {
         input.setSelection(input.getText().length()); input.setHint(title);
         LinearLayout wrap = new LinearLayout(a); wrap.setPadding(dp(a, 20), dp(a, 8), dp(a, 20), 0); wrap.addView(input);
         new AlertDialog.Builder(a).setTitle(title).setView(wrap).setNegativeButton("Cancelar", null)
-            .setPositiveButton("Guardar", (d, w) -> { String value = input.getText().toString().trim(); if (value.isEmpty()) toast(a, "El valor no puede quedar vacío."); else handler.accept(value); }).show();
+            .setPositiveButton("Guardar", new DialogInterface.OnClickListener() {
+                @Override public void onClick(DialogInterface d, int w) {
+                    String value = input.getText().toString().trim();
+                    if (value.isEmpty()) toast(a, "El valor no puede quedar vacío."); else handler.accept(value);
+                }
+            }).show();
     }
 
     private static void reset(Activity a) {
