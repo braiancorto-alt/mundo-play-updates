@@ -81,6 +81,18 @@ jobs:
           test "$original_cert" = "$rebuilt_cert"
           rm -f "$RUNNER_TEMP/mundo-play.jks"
 
+      - name: Package decoded 6.32 base for beta editor work
+        shell: bash
+        run: zip -qr "$RUNNER_TEMP/mundo-play-6.32-decoded.zip" "$RUNNER_TEMP/mundo-play-decoded"
+
+      - name: Upload decoded 6.32 base
+        uses: actions/upload-artifact@v4
+        with:
+          name: mundo-play-6.32-decoded-base
+          path: ${{ runner.temp }}/mundo-play-6.32-decoded.zip
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload smoke-test APK
         uses: actions/upload-artifact@v4
         with:
