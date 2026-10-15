@@ -1,9 +1,9 @@
-name: Build Mundo Play 6.34 beta editor
+name: Build Mundo Play 6.35 beta editor
 
 on:
   push:
     branches:
-      - work/beta-editor-6.33
+      - work/beta-editor-6.35
   workflow_dispatch:
 
 permissions:
@@ -56,8 +56,8 @@ jobs:
           text = path.read_text()
           if not re.search(r"(?m)^  versionCode: 92$", text):
               raise SystemExit("La base 6.32 no tiene el versionCode esperado 92.")
-          text = re.sub(r"(?m)^  versionCode: 92$", "  versionCode: 95", text, count=1)
-          text = re.sub(r"(?m)^  versionName: .*$", "  versionName: 6.34-beta-editor", text, count=1)
+          text = re.sub(r"(?m)^  versionCode: 92$", "  versionCode: 96", text, count=1)
+          text = re.sub(r"(?m)^  versionName: .*$", "  versionName: 6.35-beta-editor", text, count=1)
           path.write_text(text)
           PY
           python3 "$GITHUB_WORKSPACE/tools/apply_beta_editor.py" "$RUNNER_TEMP/mundo-play-decoded"
@@ -84,12 +84,12 @@ jobs:
           printf '%s' "$MUNDO_PLAY_SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/mundo-play.jks"
           BT="$ANDROID_HOME/build-tools/35.0.0"
           "$BT/zipalign" -f 4 "$RUNNER_TEMP/Mundo-Play-unsigned.apk" "$RUNNER_TEMP/Mundo-Play-aligned.apk"
-          "$BT/apksigner" sign --ks "$RUNNER_TEMP/mundo-play.jks" --ks-key-alias mundoplay --ks-pass env:MUNDO_PLAY_SIGNING_PASSWORD --key-pass env:MUNDO_PLAY_SIGNING_PASSWORD --out "$RUNNER_TEMP/Mundo-Play-6.34-beta-editor.apk" "$RUNNER_TEMP/Mundo-Play-aligned.apk"
-          "$BT/apksigner" verify --verbose "$RUNNER_TEMP/Mundo-Play-6.34-beta-editor.apk"
-          "$BT/aapt" dump badging "$RUNNER_TEMP/Mundo-Play-6.34-beta-editor.apk" | grep -F "package: name='com.mundoplay.app' versionCode='95'"
-          "$BT/aapt" dump badging "$RUNNER_TEMP/Mundo-Play-6.34-beta-editor.apk" | grep -F "versionName='6.34-beta-editor'"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/mundo-play.jks" --ks-key-alias mundoplay --ks-pass env:MUNDO_PLAY_SIGNING_PASSWORD --key-pass env:MUNDO_PLAY_SIGNING_PASSWORD --out "$RUNNER_TEMP/Mundo-Play-6.35-beta-editor.apk" "$RUNNER_TEMP/Mundo-Play-aligned.apk"
+          "$BT/apksigner" verify --verbose "$RUNNER_TEMP/Mundo-Play-6.35-beta-editor.apk"
+          "$BT/aapt" dump badging "$RUNNER_TEMP/Mundo-Play-6.35-beta-editor.apk" | grep -F "package: name='com.mundoplay.app' versionCode='96'"
+          "$BT/aapt" dump badging "$RUNNER_TEMP/Mundo-Play-6.35-beta-editor.apk" | grep -F "versionName='6.35-beta-editor'"
           original_cert=$("$BT/apksigner" verify --print-certs "$RUNNER_TEMP/Mundo-Play-6.32-beta.apk" 2>/dev/null | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
-          rebuilt_cert=$("$BT/apksigner" verify --print-certs "$RUNNER_TEMP/Mundo-Play-6.34-beta-editor.apk" 2>/dev/null | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          rebuilt_cert=$("$BT/apksigner" verify --print-certs "$RUNNER_TEMP/Mundo-Play-6.35-beta-editor.apk" 2>/dev/null | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
           test -n "$original_cert"
           test "$original_cert" = "$rebuilt_cert"
           rm -f "$RUNNER_TEMP/mundo-play.jks"
@@ -103,16 +103,16 @@ jobs:
           cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
           Beta basada en Mundo Play 6.32.
 
-          - Editor beta con menús y formularios rediseñados para combinar con la identidad visual de Mundo Play.\n          - Permite renombrar canales y categorías, cambiar logos y activar u ocultar elementos.
-          - Las personalizaciones se guardan en el dispositivo y se pueden restaurar.\n          - Se reemplazaron los diálogos grises del sistema por paneles oscuros con acentos violeta y celeste.
+          - El editor beta conserva abierta la pantalla de edición después de guardar cambios.\n          - Menús y formularios con el estilo visual de Mundo Play.\n          - Permite renombrar canales y categorías, cambiar logos y activar u ocultar elementos.
+          - Las personalizaciones se guardan en el dispositivo y se pueden restaurar.
           - Conserva paquete y firma de la aplicación anterior.
 
           Esta versión es de prueba; el editor se excluirá de la versión final.
           NOTES
-          if gh release view v6.34-beta --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload v6.34-beta "$RUNNER_TEMP/Mundo-Play-6.34-beta-editor.apk" --repo "$GITHUB_REPOSITORY" --clobber
+          if gh release view v6.35-beta --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload v6.35-beta "$RUNNER_TEMP/Mundo-Play-6.35-beta-editor.apk" --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create v6.34-beta "$RUNNER_TEMP/Mundo-Play-6.34-beta-editor.apk" --repo "$GITHUB_REPOSITORY" --title "Mundo Play 6.34 beta" --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease --target "$GITHUB_SHA"
+            gh release create v6.35-beta "$RUNNER_TEMP/Mundo-Play-6.35-beta-editor.apk" --repo "$GITHUB_REPOSITORY" --title "Mundo Play 6.35 beta" --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease --target "$GITHUB_SHA"
           fi
 
       - name: Package decoded 6.32 base for beta editor work
@@ -130,7 +130,7 @@ jobs:
       - name: Upload smoke-test APK
         uses: actions/upload-artifact@v4
         with:
-          name: mundo-play-6.34-beta-editor
-          path: ${{ runner.temp }}/Mundo-Play-6.34-beta-editor.apk
+          name: mundo-play-6.35-beta-editor
+          path: ${{ runner.temp }}/Mundo-Play-6.35-beta-editor.apk
           if-no-files-found: error
           retention-days: 7
