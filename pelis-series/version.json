@@ -1,7 +1,7 @@
 {
-  "versionCode": 22,
-  "versionName": "1.21-beta",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.21-beta.apk",
-  "sha256": "ea37d02bff4fbdb14287fef76581062e0866d80ed07dd31055ba5e390b15c2b2",
-  "notes": "Navegación móvil reorganizada en la barra inferior. Nueva ficha con imagen y descripción para películas y series antes de reproducir."
+  "versionCode": 23,
+  "versionName": "1.22-beta",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.22-beta.apk",
+  "sha256": "bd3f88fd8a0a4e128be39f3b63670a05459ae3508fe8c151e6d38c43fe53648c",
+  "notes": "Menú de ajustes del reproductor con diseño Mundo Play: tamaño de imagen, velocidad de reproducción, pistas de audio y subtítulos."
 }
