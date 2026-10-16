@@ -1,7 +1,7 @@
 {
-  "versionCode": 9,
-  "versionName": "1.8-beta",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.8-beta.apk",
-  "sha256": "57a3f8bd840d5e6c1e5ccefb824eb59e8693a5ba78279a2ecf6fb86311a2db59",
-  "notes": "Nuevo diseño visual con portada destacada, íconos modernos para las categorías, colores más vivos y títulos más legibles. Se conserva el acceso, la fecha de vencimiento y el actualizador."
+  "versionCode": 12,
+  "versionName": "1.11-beta",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.11-beta.apk",
+  "sha256": "0d424ad73bbe5f7f5d0cb314ea885a0431a2c35da7c593079e168bf8159412e1",
+  "notes": "Mejoras visuales en la pantalla principal y en el aviso de actualización, con ajustes para una presentación más prolija en celulares."
 }
