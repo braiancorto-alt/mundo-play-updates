@@ -1,7 +1,7 @@
 {
-  "versionCode": 24,
-  "versionName": "1.23-beta",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.23-beta.apk",
-  "sha256": "4a13e4e5aad54b9c0d96de9e0854f036b5b786d80eb7f0681154b7f34e6bc0b7",
-  "notes": "Ajustes del reproductor con diseño Mundo Play: pistas de audio y subtítulos, tamaño de subtítulos, tamaño de imagen y velocidad de reproducción."
+  "versionCode": 26,
+  "versionName": "1.25-beta",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.25-beta.apk",
+  "sha256": "b3c38b894aa9c6aead13b43a6b05a4aa6fab1bde7f2ecad2dbf44e710c8cb65f",
+  "notes": "Nuevo ícono de Mundo Play: M violeta con símbolo de reproducción celeste."
 }
