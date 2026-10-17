@@ -1,7 +1,7 @@
 {
-  "versionCode": 29,
-  "versionName": "1.0.2",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.0.2.apk",
-  "sha256": "73051c50b368d60ee06779747b9baf84c0a76ae59044ba76acf9e2d9a1d4ce3e",
-  "notes": "Corrige el fondo cuadrado del logo y actualiza el icono de la aplicación."
+  "versionCode": 30,
+  "versionName": "1.0.3",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.0.3.apk",
+  "sha256": "0ed1ffbc5391ba368e6ddce6559458a67aa1dbdc9cfbd47de148bda8031d9533",
+  "notes": "Ahora conserva el acceso de forma segura y vuelve a iniciar sesión al abrir la app."
 }
