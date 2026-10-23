@@ -15,7 +15,7 @@ def method_replace(signature: str, old: str, new: str) -> None:
     end = source.find(".end method", start)
     body = source[start:end]
     if body.count(old) != 1:
-        raise SystemExit(f"Expected one patch point in {signature}; found {body.count(old)}")
+        raise SystemExit(f"Expected one patch point in {signature}; found {body.count(old)}; old={old!r}")
     source = source[:start] + body.replace(old, new, 1) + source[end:]
 
 method_replace(
