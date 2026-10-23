@@ -1,6 +1,6 @@
 {
-  "versionCode": 97,
-  "versionName": "6.36-beta-editor",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.36-beta/Mundo-Play-6.36-beta-editor.apk",
-  "notes": "El editor permite ordenar canales y moverlos entre categorías."
+  "versionCode": 98,
+  "versionName": "6.37-beta-rapida",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.37-beta/Mundo-Play-6.37-beta-rapida.apk",
+  "notes": "Reduce el tiempo de espera al conectar y el búfer inicial para que los canales empiecen antes. Beta para probar velocidad y estabilidad."
 }
