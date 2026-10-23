@@ -72,4 +72,21 @@ for relative in (
         raise SystemExit(f"Expected one editable name field in {field_file}")
     field_file.write_text(field_source.replace(old, ".field name:Ljava/lang/String;", 1))
 
-print(f"Applied editor hooks and editable names to {root}")
+
+method_replace(
+    ".method private playCandidate(Lcom/mundoplay/app/MainActivity$MundoItem;Landroid/view/SurfaceView;Landroid/widget/TextView;I)V",
+    "    const/16 v1, 0x2710\\n\\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setConnectTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\\n",
+    "    const/16 v1, 0x1388\\n\\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setConnectTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\\n",
+)
+method_replace(
+    ".method private playCandidate(Lcom/mundoplay/app/MainActivity$MundoItem;Landroid/view/SurfaceView;Landroid/widget/TextView;I)V",
+    "    const/16 v1, 0x4e20\\n\\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setReadTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\\n",
+    "    const/16 v1, 0x1f40\\n\\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setReadTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\\n",
+)
+method_replace(
+    ".method private playCandidate(Lcom/mundoplay/app/MainActivity$MundoItem;Landroid/view/SurfaceView;Landroid/widget/TextView;I)V",
+    "    new-instance v0, Lcom/google/android/exoplayer2/SimpleExoPlayer$Builder;\\n\\n    invoke-direct {v0, p0}, Lcom/google/android/exoplayer2/SimpleExoPlayer$Builder;-><init>(Landroid/content/Context;)V\\n\\n    invoke-virtual {v0}, Lcom/google/android/exoplayer2/SimpleExoPlayer$Builder;->build()Lcom/google/android/exoplayer2/SimpleExoPlayer;\\n",
+    "    invoke-static {p0}, Lcom/mundoplay/app/FastPlayer;->create(Landroid/content/Context;)Lcom/google/android/exoplayer2/SimpleExoPlayer;\\n",
+)
+
+print(f"Applied editor hooks, fast player, and shorter stream timeouts to {root}")

@@ -1,9 +1,9 @@
-name: Build Mundo Play 6.36 beta editor
+name: Build Mundo Play 6.37 beta inicio rápido
 
 on:
   push:
     branches:
-      - work/beta-editor-6.36
+      - work/beta-editor-6.37
   workflow_dispatch:
 
 permissions:
@@ -56,15 +56,15 @@ jobs:
           text = path.read_text()
           if not re.search(r"(?m)^  versionCode: 92$", text):
               raise SystemExit("La base 6.32 no tiene el versionCode esperado 92.")
-          text = re.sub(r"(?m)^  versionCode: 92$", "  versionCode: 97", text, count=1)
-          text = re.sub(r"(?m)^  versionName: .*$", "  versionName: 6.36-beta-editor", text, count=1)
+          text = re.sub(r"(?m)^  versionCode: 92$", "  versionCode: 98", text, count=1)
+          text = re.sub(r"(?m)^  versionName: .*$", "  versionName: 6.37-beta-rapida", text, count=1)
           path.write_text(text)
           PY
           python3 "$GITHUB_WORKSPACE/tools/apply_beta_editor.py" "$RUNNER_TEMP/mundo-play-decoded"
 
           ANDROID_JAR="$ANDROID_HOME/platforms/android-35/android.jar"
           mkdir -p "$RUNNER_TEMP/editor-classes" "$RUNNER_TEMP/editor-dex"
-          javac -source 8 -target 8 -bootclasspath "$ANDROID_JAR" -d "$RUNNER_TEMP/editor-classes" "$GITHUB_WORKSPACE/tools/BetaEditor.java"
+          javac -source 8 -target 8 -bootclasspath "$ANDROID_JAR" -d "$RUNNER_TEMP/editor-classes" "$GITHUB_WORKSPACE/tools/BetaEditor.java" "$GITHUB_WORKSPACE/tools/FastPlayer.java"
           BT="$ANDROID_HOME/build-tools/35.0.0"
           "$BT/d8" --lib "$ANDROID_JAR" --min-api 23 --output "$RUNNER_TEMP/editor-dex" "$RUNNER_TEMP"/editor-classes/com/mundoplay/app/*.class
           mv "$RUNNER_TEMP/editor-dex/classes.dex" "$RUNNER_TEMP/classes2.dex"
@@ -84,12 +84,12 @@ jobs:
           printf '%s' "$MUNDO_PLAY_SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/mundo-play.jks"
           BT="$ANDROID_HOME/build-tools/35.0.0"
           "$BT/zipalign" -f 4 "$RUNNER_TEMP/Mundo-Play-unsigned.apk" "$RUNNER_TEMP/Mundo-Play-aligned.apk"
-          "$BT/apksigner" sign --ks "$RUNNER_TEMP/mundo-play.jks" --ks-key-alias mundoplay --ks-pass env:MUNDO_PLAY_SIGNING_PASSWORD --key-pass env:MUNDO_PLAY_SIGNING_PASSWORD --out "$RUNNER_TEMP/Mundo-Play-6.36-beta-editor.apk" "$RUNNER_TEMP/Mundo-Play-aligned.apk"
-          "$BT/apksigner" verify --verbose "$RUNNER_TEMP/Mundo-Play-6.36-beta-editor.apk"
-          "$BT/aapt" dump badging "$RUNNER_TEMP/Mundo-Play-6.36-beta-editor.apk" | grep -F "package: name='com.mundoplay.app' versionCode='97'"
-          "$BT/aapt" dump badging "$RUNNER_TEMP/Mundo-Play-6.36-beta-editor.apk" | grep -F "versionName='6.36-beta-editor'"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/mundo-play.jks" --ks-key-alias mundoplay --ks-pass env:MUNDO_PLAY_SIGNING_PASSWORD --key-pass env:MUNDO_PLAY_SIGNING_PASSWORD --out "$RUNNER_TEMP/Mundo-Play-6.37-beta-rapida.apk" "$RUNNER_TEMP/Mundo-Play-aligned.apk"
+          "$BT/apksigner" verify --verbose "$RUNNER_TEMP/Mundo-Play-6.37-beta-rapida.apk"
+          "$BT/aapt" dump badging "$RUNNER_TEMP/Mundo-Play-6.37-beta-rapida.apk" | grep -F "package: name='com.mundoplay.app' versionCode='98'"
+          "$BT/aapt" dump badging "$RUNNER_TEMP/Mundo-Play-6.37-beta-rapida.apk" | grep -F "versionName='6.37-beta-rapida'"
           original_cert=$("$BT/apksigner" verify --print-certs "$RUNNER_TEMP/Mundo-Play-6.32-beta.apk" 2>/dev/null | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
-          rebuilt_cert=$("$BT/apksigner" verify --print-certs "$RUNNER_TEMP/Mundo-Play-6.36-beta-editor.apk" 2>/dev/null | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          rebuilt_cert=$("$BT/apksigner" verify --print-certs "$RUNNER_TEMP/Mundo-Play-6.37-beta-rapida.apk" 2>/dev/null | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
           test -n "$original_cert"
           test "$original_cert" = "$rebuilt_cert"
           rm -f "$RUNNER_TEMP/mundo-play.jks"
@@ -101,20 +101,18 @@ jobs:
         run: |
           set -euo pipefail
           cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
-          Beta basada en Mundo Play 6.32.
+          Beta basada en Mundo Play 6.32 y actualización de prueba sobre la 6.36.
 
-          - El editor beta permite reordenar canales y moverlos a otra categoría, conservando el editor abierto después de guardar.
-          - Menús y formularios con el estilo visual de Mundo Play.
-          - Permite renombrar canales y categorías, cambiar logos y activar u ocultar elementos.
-          - Las personalizaciones se guardan en el dispositivo y se pueden restaurar.
-          - Conserva paquete y firma de la aplicación anterior.
+          - Reduce los límites de espera de red para que la app pase antes a fuentes alternativas que no responden.
+          - Reduce el búfer inicial de 2,5 a 1 segundo y el reinicio tras un corte a 3 segundos.
+          - Mantiene el editor beta, el paquete y la firma de la aplicación.
 
-          Esta versión es de prueba; el editor se excluirá de la versión final.
+          Probá el inicio de canales y avisá si notas cortes o canales que no cargan.
           NOTES
-          if gh release view v6.36-beta --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload v6.36-beta "$RUNNER_TEMP/Mundo-Play-6.36-beta-editor.apk" --repo "$GITHUB_REPOSITORY" --clobber
+          if gh release view v6.37-beta --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload v6.37-beta "$RUNNER_TEMP/Mundo-Play-6.37-beta-rapida.apk" --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create v6.36-beta "$RUNNER_TEMP/Mundo-Play-6.36-beta-editor.apk" --repo "$GITHUB_REPOSITORY" --title "Mundo Play 6.36 beta" --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease --target "$GITHUB_SHA"
+            gh release create v6.37-beta "$RUNNER_TEMP/Mundo-Play-6.37-beta-rapida.apk" --repo "$GITHUB_REPOSITORY" --title "Mundo Play 6.37 beta" --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease --target "$GITHUB_SHA"
           fi
 
       - name: Package decoded 6.32 base for beta editor work
@@ -132,7 +130,7 @@ jobs:
       - name: Upload smoke-test APK
         uses: actions/upload-artifact@v4
         with:
-          name: mundo-play-6.36-beta-editor
-          path: ${{ runner.temp }}/Mundo-Play-6.36-beta-editor.apk
+          name: mundo-play-6.37-beta-rapida
+          path: ${{ runner.temp }}/Mundo-Play-6.37-beta-rapida.apk
           if-no-files-found: error
           retention-days: 7
