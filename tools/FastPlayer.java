@@ -17,3 +17,4 @@ public final class FastPlayer {
                 .build();
     }
 }
+// Build trigger for the verified 6.37 beta workflow.
