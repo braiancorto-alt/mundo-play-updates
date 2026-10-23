@@ -75,13 +75,13 @@ for relative in (
 
 method_replace(
     ".method private playCandidate(Lcom/mundoplay/app/MainActivity$MundoItem;Landroid/view/SurfaceView;Landroid/widget/TextView;I)V",
-    "    const/16 v1, 0x2710\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setConnectTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\n",
-    "    const/16 v1, 0x1388\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setConnectTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\n",
+    "    const/16 v1, 0x2710\n\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setConnectTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\n",
+    "    const/16 v1, 0x1388\n\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setConnectTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\n",
 )
 method_replace(
     ".method private playCandidate(Lcom/mundoplay/app/MainActivity$MundoItem;Landroid/view/SurfaceView;Landroid/widget/TextView;I)V",
-    "    const/16 v1, 0x4e20\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setReadTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\n",
-    "    const/16 v1, 0x1f40\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setReadTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\n",
+    "    const/16 v1, 0x4e20\n\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setReadTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\n",
+    "    const/16 v1, 0x1f40\n\n    invoke-virtual {v0, v1}, Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;->setReadTimeoutMs(I)Lcom/google/android/exoplayer2/upstream/DefaultHttpDataSource$Factory;\n",
 )
 method_replace(
     ".method private playCandidate(Lcom/mundoplay/app/MainActivity$MundoItem;Landroid/view/SurfaceView;Landroid/widget/TextView;I)V",
