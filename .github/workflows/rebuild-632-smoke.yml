@@ -3,7 +3,7 @@ name: Build Mundo Play 6.37 beta inicio rápido
 on:
   push:
     branches:
-      - work/beta-editor-6.37
+      - work/beta-editor-6.36
   workflow_dispatch:
 
 permissions:
