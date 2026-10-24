@@ -1,7 +1,7 @@
 {
-  "versionCode": 38,
-  "versionName": "1.1.1",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.1.1.apk",
-  "sha256": "bad7ae19a4a723c604240b2b1b505f3714907e73581a85d60692c1d04356a5c2",
-  "notes": "Pantalla de inicio animada con el logo de Mundo Play."
+  "versionCode": 39,
+  "versionName": "1.1.2",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.1.2.apk",
+  "sha256": "a3ea7f399c6c55464d5266426f10f54b4769a6a68a41c6c1fb2f0ca1365c9a75",
+  "notes": "Categorías reorganizadas, nombres más claros y CAM al final."
 }
