@@ -1,6 +1,6 @@
 {
-  "versionCode": 99,
-  "versionName": "6.38-beta-lista",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.38-beta-lista/Mundo-Play-6.38-beta-lista.apk",
-  "notes": "Agrega en Ajustes una pantalla temporal para probar la lista M3U de películas por categoría y reproducir títulos. Conserva el catálogo actual de TV."
+  "versionCode": 100,
+  "versionName": "6.39-beta-lista",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.39-beta-lista/Mundo-Play-6.39-beta-lista.apk",
+  "notes": "Agrega en Ajustes una pantalla temporal para probar la lista M3U de películas con categorías, pósters y reproducción. Conserva el catálogo actual de TV."
 }
