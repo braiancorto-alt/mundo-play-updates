@@ -3,10 +3,13 @@ package com.mundoplay.app;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.util.LruCache;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -16,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
@@ -23,13 +27,18 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /** Temporary in-app viewer for the supplied M3U movie list. */
 public final class BetaM3UCatalog {
@@ -38,6 +47,10 @@ public final class BetaM3UCatalog {
     private static final int PURPLE = Color.rgb(125, 48, 255);
     private static final int CYAN = Color.rgb(62, 192, 240);
     private static volatile ArrayList<Film> cache;
+    private static final LruCache<String, Bitmap> POSTER_CACHE = new LruCache<String, Bitmap>(20 * 1024 * 1024) {
+        @Override protected int sizeOf(String key, Bitmap value) { return value.getByteCount(); }
+    };
+    private static final ExecutorService POSTER_WORKERS = Executors.newFixedThreadPool(4);
 
     private BetaM3UCatalog() {}
 
@@ -191,7 +204,7 @@ public final class BetaM3UCatalog {
                     String group = attrs.get("tvg-group");
                     if (group == null || group.trim().isEmpty()) group = attrs.get("group-title");
                     if (group == null || group.trim().isEmpty()) group = "Sin categoría";
-                    if (!display.isEmpty()) result.add(new Film(display, line, group));
+                    if (!display.isEmpty()) result.add(new Film(display, line, group, attrs.get("tvg-logo")));
                     metadata = null;
                 }
             }
@@ -212,6 +225,41 @@ public final class BetaM3UCatalog {
         seen.put("Todas", true);
         for (Film film : films) seen.put(film.group, true);
         return new ArrayList<>(seen.keySet());
+    }
+
+    private static void loadPoster(final Activity a, final String url, final ImageView target) {
+        if (url == null || url.isEmpty()) { target.setImageDrawable(null); return; }
+        target.setTag(url);
+        Bitmap cached = POSTER_CACHE.get(url);
+        if (cached != null) { target.setImageBitmap(cached); return; }
+        target.setImageDrawable(null);
+        POSTER_WORKERS.execute(new Runnable() {
+            @Override public void run() {
+                HttpURLConnection connection = null;
+                try {
+                    connection = (HttpURLConnection) new URL(url).openConnection();
+                    connection.setConnectTimeout(5000);
+                    connection.setReadTimeout(7000);
+                    connection.setInstanceFollowRedirects(true);
+                    connection.connect();
+                    try (InputStream in = connection.getInputStream()) {
+                        Bitmap bitmap = BitmapFactory.decodeStream(in);
+                        if (bitmap != null) {
+                            POSTER_CACHE.put(url, bitmap);
+                            final Bitmap result = bitmap;
+                            a.runOnUiThread(new Runnable() {
+                                @Override public void run() {
+                                    if (url.equals(target.getTag())) target.setImageBitmap(result);
+                                }
+                            });
+                        }
+                    }
+                } catch (Exception ignored) {
+                } finally {
+                    if (connection != null) connection.disconnect();
+                }
+            }
+        });
     }
 
     private static TextView action(Activity a, String value, int color) {
@@ -254,8 +302,8 @@ public final class BetaM3UCatalog {
     }
 
     private static final class Film {
-        final String title, url, group;
-        Film(String title, String url, String group) { this.title = title; this.url = url; this.group = group; }
+        final String title, url, group, logo;
+        Film(String title, String url, String group, String logo) { this.title = title; this.url = url; this.group = group; this.logo = logo; }
     }
 
     private static final class FilmAdapter extends BaseAdapter {
@@ -276,17 +324,41 @@ public final class BetaM3UCatalog {
         @Override public Film getItem(int position) { return visible.get(position); }
         @Override public long getItemId(int position) { return position; }
         @Override public View getView(int position, View convertView, android.view.ViewGroup parent) {
-            TextView card = convertView instanceof TextView ? (TextView) convertView : new TextView(activity);
+            Holder holder;
+            if (convertView instanceof LinearLayout) {
+                holder = (Holder) convertView.getTag();
+            } else {
+                LinearLayout card = new LinearLayout(activity);
+                card.setOrientation(LinearLayout.VERTICAL);
+                card.setBackground(shape(CARD, Color.rgb(67, 67, 92), dp(activity, 12)));
+                card.setClipToOutline(true);
+                ImageView poster = new ImageView(activity);
+                poster.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                poster.setBackgroundColor(Color.rgb(38, 38, 66));
+                card.addView(poster, new LinearLayout.LayoutParams(-1, dp(activity, 200)));
+                TextView label = new TextView(activity);
+                label.setTextColor(Color.WHITE);
+                label.setTextSize(13);
+                label.setGravity(Gravity.CENTER_VERTICAL);
+                label.setMaxLines(2);
+                label.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                label.setPadding(dp(activity, 9), dp(activity, 6), dp(activity, 9), dp(activity, 8));
+                card.addView(label, new LinearLayout.LayoutParams(-1, dp(activity, 50)));
+                holder = new Holder(poster, label);
+                card.setTag(holder);
+                convertView = card;
+            }
             Film film = getItem(position);
-            card.setText(film.title);
-            card.setTextColor(Color.WHITE);
-            card.setTextSize(14);
-            card.setGravity(Gravity.CENTER);
-            card.setPadding(dp(activity, 8), dp(activity, 10), dp(activity, 8), dp(activity, 10));
-            card.setMinHeight(dp(activity, 76));
-            card.setFocusable(true);
-            card.setBackground(shape(CARD, Color.rgb(67, 67, 92), dp(activity, 12)));
-            return card;
+            holder.label.setText(film.title);
+            loadPoster(activity, film.logo, holder.poster);
+            convertView.setFocusable(true);
+            return convertView;
         }
+    }
+
+    private static final class Holder {
+        final ImageView poster;
+        final TextView label;
+        Holder(ImageView poster, TextView label) { this.poster = poster; this.label = label; }
     }
 }
