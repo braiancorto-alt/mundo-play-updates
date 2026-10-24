@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """Apply the beta-only catalog editor hooks to the decoded 6.32 MainActivity."""
 from pathlib import Path
+import shutil
 import sys
 
 root = Path(sys.argv[1])
+m3u_source = Path(__file__).with_name("Lista_Completa.m3u")
+if not m3u_source.is_file():
+    raise SystemExit(f"Missing test playlist: {m3u_source}")
+assets = root / "assets"
+assets.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(m3u_source, assets / "mundo-play-test.m3u")
 target = root / "smali/com/mundoplay/app/MainActivity.smali"
 source = target.read_text()
 
@@ -55,6 +62,7 @@ method_replace(
 method_replace(
     ".method private showSettings()V",
     "    .line 1687\n    invoke-direct {p0, v11}, Lcom/mundoplay/app/MainActivity;->addSettingDivider(Landroid/widget/LinearLayout;)V\n",
+    "    invoke-static {p0, v11}, Lcom/mundoplay/app/BetaM3UCatalog;->addEntry(Landroid/app/Activity;Landroid/widget/LinearLayout;)V\n"
     "    invoke-static {p0, v11}, Lcom/mundoplay/app/BetaEditor;->addEntry(Landroid/app/Activity;Landroid/widget/LinearLayout;)V\n"
     "    .line 1687\n    invoke-direct {p0, v11}, Lcom/mundoplay/app/MainActivity;->addSettingDivider(Landroid/widget/LinearLayout;)V\n",
 )
