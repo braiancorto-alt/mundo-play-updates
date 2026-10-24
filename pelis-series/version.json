@@ -1,7 +1,7 @@
 {
-  "versionCode": 31,
-  "versionName": "1.0.4",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.0.4.apk",
-  "sha256": "f9c53f534d7fc606ae1e453640c981ed4a3b9848f43acdc9ef517e5de8d2bfa0",
-  "notes": "Quita el fondo cuadrado del logo dentro del catálogo."
+  "versionCode": 33,
+  "versionName": "1.0.6",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.0.6.apk",
+  "sha256": "b0e7a8b1678fd65020d9b292695a589f65ab6747927862bbb134abb1d1f642a8",
+  "notes": "Corrige el botón de pausa/reproducción y despeja los controles para retroceder y adelantar 10 segundos."
 }
