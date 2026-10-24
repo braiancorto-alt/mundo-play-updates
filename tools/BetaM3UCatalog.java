@@ -2,14 +2,17 @@ package com.mundoplay.app;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.BaseAdapter;
+import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.HorizontalScrollView;
@@ -92,7 +95,9 @@ public final class BetaM3UCatalog {
 
         close.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { dialog.dismiss(); } });
         dialog.setContentView(page);
-        dialog.setOnShowListener(d -> sizeFull(dialog));
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override public void onShow(DialogInterface ignored) { sizeFull(dialog); }
+        });
         dialog.show();
         sizeFull(dialog);
 
@@ -110,20 +115,26 @@ public final class BetaM3UCatalog {
                         status.setText(films.size() + " películas · " + (groups.size() - 1) + " categorías");
                         final FilmAdapter adapter = new FilmAdapter(a, films, "Todas");
                         grid.setAdapter(adapter);
-                        grid.setOnItemClickListener((parent, view, position, id) -> play(a, adapter.getItem(position)));
+                        grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                play(a, adapter.getItem(position));
+                            }
+                        });
                         for (final String group : groups) {
                             TextView chip = action(a, group, "Todas".equals(group) ? PURPLE : CARD);
                             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, dp(a, 38));
                             lp.setMargins(0, 0, dp(a, 8), 0);
                             categoriesRow.addView(chip, lp);
-                            chip.setOnClickListener(v -> {
-                                for (int i = 0; i < categoriesRow.getChildCount(); i++) {
-                                    View child = categoriesRow.getChildAt(i);
-                                    if (child instanceof TextView) child.setBackground(shape(CARD, CYAN, dp(a, 14)));
+                            chip.setOnClickListener(new View.OnClickListener() {
+                                @Override public void onClick(View v) {
+                                    for (int i = 0; i < categoriesRow.getChildCount(); i++) {
+                                        View child = categoriesRow.getChildAt(i);
+                                        if (child instanceof TextView) child.setBackground(shape(CARD, CYAN, dp(a, 14)));
+                                    }
+                                    chip.setBackground(shape(PURPLE, PURPLE, dp(a, 14)));
+                                    adapter.setGroup(group);
+                                    grid.setSelection(0);
                                 }
-                                chip.setBackground(shape(PURPLE, PURPLE, dp(a, 14)));
-                                adapter.setGroup(group);
-                                grid.setSelection(0);
                             });
                         }
                     }
@@ -150,10 +161,14 @@ public final class BetaM3UCatalog {
         MediaController controller = new MediaController(a);
         controller.setAnchorView(video);
         video.setMediaController(controller);
-        video.setOnPreparedListener(mp -> video.start());
-        video.setOnErrorListener((mp, what, extra) -> {
-            Toast.makeText(a, "No se pudo reproducir este título.", Toast.LENGTH_LONG).show();
-            return false;
+        video.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override public void onPrepared(MediaPlayer mp) { video.start(); }
+        });
+        video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override public boolean onError(MediaPlayer mp, int what, int extra) {
+                Toast.makeText(a, "No se pudo reproducir este título.", Toast.LENGTH_LONG).show();
+                return true;
+            }
         });
         video.setVideoURI(Uri.parse(film.url));
         video.requestFocus();
