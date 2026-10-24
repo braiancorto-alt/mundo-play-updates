@@ -1,7 +1,7 @@
 {
-  "versionCode": 36,
-  "versionName": "1.0.9",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.0.9.apk",
-  "sha256": "4dfd994ef6042f3d79b4a27f6e1411d12b4cde054b5fca3a9d81ec5b67f6090b",
-  "notes": "Una sola ficha por película, preferencia de idioma en Ajustes y selección de versión desde la ficha. Se quitó el contador del catálogo."
+  "versionCode": 37,
+  "versionName": "1.1.0",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.1.0.apk",
+  "sha256": "5298b3399c5d70230f3e93786a533236440659d24ae372bc2644f25847b2aa43",
+  "notes": "Botón de actualizar en la cabecera y separación de películas y series en el inicio."
 }
