@@ -1,3 +1,4 @@
 d760b6777a5c738249c5a4fcad2f832a21579252d978a331aa2b6c94f55b5cc7  Mundo-Play-Pelis-y-Series-1.0.7.apk
 ec99ef838fc943e1a0a4398784fbb575b1ae04f2b8b9e557c2e8964c0cc13751  Mundo-Play-Pelis-y-Series-1.0.8.apk
 4dfd994ef6042f3d79b4a27f6e1411d12b4cde054b5fca3a9d81ec5b67f6090b  Mundo-Play-Pelis-y-Series-1.0.9.apk
+5298b3399c5d70230f3e93786a533236440659d24ae372bc2644f25847b2aa43  Mundo-Play-Pelis-y-Series-1.1.0.apk
