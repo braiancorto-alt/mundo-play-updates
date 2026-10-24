@@ -60,11 +60,12 @@ method_replace(
     "    move-result-object p2\n\n    const/4 v1, 0x0\n",
 )
 method_replace(
-    ".method private showSettings()V",
-    "    .line 1687\n    invoke-direct {p0, v11}, Lcom/mundoplay/app/MainActivity;->addSettingDivider(Landroid/widget/LinearLayout;)V\n",
-    "    invoke-static {p0, v11}, Lcom/mundoplay/app/BetaM3UCatalog;->addEntry(Landroid/app/Activity;Landroid/widget/LinearLayout;)V\n"
-    "    invoke-static {p0, v11}, Lcom/mundoplay/app/BetaEditor;->addEntry(Landroid/app/Activity;Landroid/widget/LinearLayout;)V\n"
-    "    .line 1687\n    invoke-direct {p0, v11}, Lcom/mundoplay/app/MainActivity;->addSettingDivider(Landroid/widget/LinearLayout;)V\n",
+    ".method public onCreate(Landroid/os/Bundle;)V",
+    "    iput-object p1, p0, Lcom/mundoplay/app/MainActivity;->password:Ljava/lang/String;\n\n    .line 165\n",
+    "    iput-object p1, p0, Lcom/mundoplay/app/MainActivity;->password:Ljava/lang/String;\n\n"
+    "    invoke-static {p0}, Lcom/mundoplay/app/BetaM3UCatalog;->open(Landroid/app/Activity;)V\n"
+    "    invoke-direct {p0}, Lcom/mundoplay/app/MainActivity;->checkForUpdates()V\n"
+    "    return-void\n\n    .line 165\n",
 )
 
 target.write_text(source)
