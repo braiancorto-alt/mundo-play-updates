@@ -1,6 +1,6 @@
 {
-  "versionCode": 98,
-  "versionName": "6.37-beta-rapida",
-  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.37-beta/Mundo-Play-6.37-beta-rapida.apk",
-  "notes": "Reduce el tiempo de espera al conectar y el búfer inicial para que los canales empiecen antes. Beta para probar velocidad y estabilidad."
+  "versionCode": 99,
+  "versionName": "6.38-beta-lista",
+  "apkUrl": "https://github.com/braiancorto-alt/mundo-play-updates/releases/download/v6.38-beta-lista/Mundo-Play-6.38-beta-lista.apk",
+  "notes": "Agrega en Ajustes una pantalla temporal para probar la lista M3U de películas por categoría y reproducir títulos. Conserva el catálogo actual de TV."
 }
