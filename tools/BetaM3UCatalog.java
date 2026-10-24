@@ -54,6 +54,8 @@ public final class BetaM3UCatalog {
 
     private BetaM3UCatalog() {}
 
+    public static void open(Activity activity) { showCatalog(activity); }
+
     public static void addEntry(final Activity activity, LinearLayout parent) {
         TextView row = new TextView(activity);
         row.setText("▶   Probar lista de películas (M3U)");
@@ -80,9 +82,9 @@ public final class BetaM3UCatalog {
 
         LinearLayout header = new LinearLayout(a);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title = text(a, "CATÁLOGO M3U", 20, Color.WHITE, true);
+        TextView title = text(a, "PELÍCULAS Y SERIES", 20, Color.WHITE, true);
         header.addView(title, new LinearLayout.LayoutParams(0, dp(a, 48), 1));
-        TextView close = action(a, "CERRAR", PURPLE);
+        TextView close = action(a, "SALIR", PURPLE);
         header.addView(close, new LinearLayout.LayoutParams(dp(a, 96), dp(a, 42)));
         page.addView(header);
 
@@ -106,7 +108,8 @@ public final class BetaM3UCatalog {
         grid.setSelector(android.R.color.transparent);
         page.addView(grid, new LinearLayout.LayoutParams(-1, 0, 1));
 
-        close.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { dialog.dismiss(); } });
+        close.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { dialog.dismiss(); a.finish(); } });
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() { @Override public void onDismiss(DialogInterface ignored) { if (!a.isFinishing()) a.finish(); } });
         dialog.setContentView(page);
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override public void onShow(DialogInterface ignored) { sizeFull(dialog); }
