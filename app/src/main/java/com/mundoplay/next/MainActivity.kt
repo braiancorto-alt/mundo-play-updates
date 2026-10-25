@@ -120,6 +120,18 @@ private fun MundoPlayApp(activity: MainActivity) {
                             .onFailure { error = it.message ?: "No se pudo conectar con el proveedor." }
                         loading = false
                     }
+                },
+                onConnectFlow = {
+                    scope.launch {
+                        loading = true; error = ""
+                        runCatching { FlowCsvLoader.load() }
+                            .onSuccess { result ->
+                                if (result.isEmpty()) error = "El catálogo Flow no contiene señales MPD válidas."
+                                else channels = sortChannels(result)
+                            }
+                            .onFailure { error = it.message ?: "No se pudo cargar el catálogo Flow." }
+                        loading = false
+                    }
                 }
             )
         } else {
@@ -141,7 +153,8 @@ private fun ConnectScreen(
     loading: Boolean,
     error: String,
     onConnectM3u: (String) -> Unit,
-    onConnectXtream: (String, String, String) -> Unit
+    onConnectXtream: (String, String, String) -> Unit,
+    onConnectFlow: () -> Unit
 ) {
     var mode by remember { mutableStateOf("xtream") }
     var server by remember { mutableStateOf("") }
@@ -168,6 +181,7 @@ private fun ConnectScreen(
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Ink).padding(4.dp)) {
                 ModeTab("Proveedor", mode == "xtream", Modifier.weight(1f)) { mode = "xtream" }
                 ModeTab("Lista M3U", mode == "m3u", Modifier.weight(1f)) { mode = "m3u" }
+                ModeTab("Flow MPD", mode == "flow", Modifier.weight(1f)) { mode = "flow" }
             }
             Spacer(Modifier.height(18.dp))
             if (mode == "xtream") {
@@ -180,10 +194,14 @@ private fun ConnectScreen(
                 Spacer(Modifier.height(10.dp))
                 AppField(password, { password = it }, "Contraseña", "Contraseña", password = !reveal,
                     trailing = { TextButton(onClick = { reveal = !reveal }) { Text(if (reveal) "Ocultar" else "Ver") } })
-            } else {
+            } else if (mode == "m3u") {
                 AppField(playlist, { playlist = it }, "URL de lista M3U", "https://…/lista.m3u")
                 Spacer(Modifier.height(8.dp))
                 Text("Ingresá una lista que tengas autorización para reproducir.", color = Muted, fontSize = 13.sp)
+            } else {
+                Text("SEÑALES EN MPD", color = Cyan, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("Carga el catálogo Flow autorizado sin usuario ni contraseña.", color = Muted, fontSize = 13.sp)
             }
             if (error.isNotBlank()) {
                 Spacer(Modifier.height(12.dp))
@@ -192,15 +210,22 @@ private fun ConnectScreen(
             Spacer(Modifier.height(18.dp))
             Button(
                 onClick = {
-                    if (mode == "m3u") onConnectM3u(playlist.trim())
-                    else onConnectXtream(server.trim(), username.trim(), password)
+                    when (mode) {
+                        "m3u" -> onConnectM3u(playlist.trim())
+                        "flow" -> onConnectFlow()
+                        else -> onConnectXtream(server.trim(), username.trim(), password)
+                    }
                 },
-                enabled = !loading && (if (mode == "m3u") playlist.isNotBlank() else server.isNotBlank() && username.isNotBlank() && password.isNotBlank()),
+                enabled = !loading && when (mode) {
+                    "m3u" -> playlist.isNotBlank()
+                    "flow" -> true
+                    else -> server.isNotBlank() && username.isNotBlank() && password.isNotBlank()
+                },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(18.dp)
             ) {
                 if (loading) CircularProgressIndicator(Modifier.size(22.dp), color = White, strokeWidth = 2.dp)
-                else Text(if (mode == "m3u") "Cargar canales" else "Ingresar", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                else Text(if (mode == "m3u") "Cargar canales" else if (mode == "flow") "Cargar Flow" else "Ingresar", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -380,6 +405,48 @@ private data class TvChannel(
     val streamUrls: List<String>,
     val headers: Map<String, String> = emptyMap()
 )
+
+
+private object FlowCsvLoader {
+    private const val CATALOG_URL = "https://raw.githubusercontent.com/mac-donal/FLOW/main/trimi.csv"
+
+    suspend fun load(): List<TvChannel> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val connection = URL(CATALOG_URL).openConnection() as HttpURLConnection
+        connection.connectTimeout = 15000
+        connection.readTimeout = 20000
+        connection.setRequestProperty("User-Agent", "MundoPlayTV/1.0")
+        try {
+            val status = connection.responseCode
+            if (status !in 200..299) error("El catálogo Flow respondió con código $status.")
+            val lines = connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readLines() }
+            lines.mapNotNull { raw ->
+                val row = raw.trim().removePrefix("\uFEFF")
+                if (row.isBlank()) return@mapNotNull null
+                val columns = row.split(',', limit = 3)
+                if (columns.size < 3) return@mapNotNull null
+                val name = columns[0].trim().trim('"').ifBlank { return@mapNotNull null }
+                val logo = columns[1].trim().trim('"')
+                val wrapped = columns[2].trim().trim('"')
+                val streamUrl = wrapped.substringAfterLast('#', wrapped).trim()
+                val uri = runCatching { java.net.URI(streamUrl) }.getOrNull() ?: return@mapNotNull null
+                if (uri.scheme !in setOf("https", "http") || !uri.path.endsWith(".mpd", true)) return@mapNotNull null
+                val id = "flow:" + name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
+                val lower = name.lowercase()
+                val group = when {
+                    listOf("espn", "fox sports", "tnt sports", "tyc", "deport").any { it in lower } -> "DEPORTES ARGENTINA"
+                    listOf("disney", "cartoon", "nick", "junior", "kids").any { it in lower } -> "INFANTILES"
+                    listOf("hbo", "universal", "cine", "movie", "series").any { it in lower } -> "CINE Y SERIES"
+                    listOf("music", "música", "musica", "mtv").any { it in lower } -> "MUSICALES"
+                    listOf("national geographic", "discovery", "history", "animal planet").any { it in lower } -> "CULTURALES"
+                    else -> categoryFor("Otros", id, name)
+                }
+                TvChannel(id, name, group, logo, listOf(streamUrl))
+            }.distinctBy { it.id }
+        } finally {
+            connection.disconnect()
+        }
+    }
+}
 
 private object PlaylistLoader {
     suspend fun loadM3u(url: String): List<TvChannel> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
