@@ -1,6 +1,8 @@
 package com.mundoplay.next
 
 import android.content.pm.ActivityInfo
+import android.net.Uri
+import android.util.Base64
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.ViewGroup
@@ -33,12 +35,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
+import androidx.media3.exoplayer.drm.FrameworkMediaDrm
+import androidx.media3.exoplayer.drm.LocalMediaDrmCallback
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -336,6 +342,12 @@ private fun LivePlayer(channels: List<TvChannel>, startIndex: Int, onBack: () ->
         val httpFactory = DefaultHttpDataSource.Factory().setDefaultRequestProperties(channel.headers)
         val dataFactory = DefaultDataSource.Factory(context, httpFactory)
         val sourceFactory = DefaultMediaSourceFactory(context).setDataSourceFactory(dataFactory)
+        clearKeyResponseFor(channel.streamUrls.firstOrNull())?.let { response ->
+            val drmManager = DefaultDrmSessionManager.Builder()
+                .setUuidAndExoMediaDrmProvider(C.CLEARKEY_UUID, FrameworkMediaDrm.DEFAULT_PROVIDER)
+                .build(LocalMediaDrmCallback(response))
+            sourceFactory.setDrmSessionManagerProvider { drmManager }
+        }
         ExoPlayer.Builder(context).setMediaSourceFactory(sourceFactory).build()
     }
 
@@ -406,6 +418,34 @@ private data class TvChannel(
     val headers: Map<String, String> = emptyMap()
 )
 
+
+
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+private fun clearKeyResponseFor(streamUrl: String?): ByteArray? {
+    if (streamUrl.isNullOrBlank()) return null
+    return runCatching {
+        val encodedKeys = Uri.parse(streamUrl).getQueryParameter("ck") ?: return null
+        val keyMap = org.json.JSONObject(String(Base64.decode(encodedKeys, Base64.DEFAULT), Charsets.UTF_8))
+        val keys = org.json.JSONArray()
+        val iterator = keyMap.keys()
+        while (iterator.hasNext()) {
+            val keyIdHex = iterator.next()
+            val keyHex = keyMap.optString(keyIdHex)
+            if (!keyIdHex.matches(Regex("^[0-9a-fA-F]{32}$")) ||
+                !keyHex.matches(Regex("^[0-9a-fA-F]{32}$"))) continue
+            val keyId = Base64.encodeToString(hexBytes(keyIdHex), Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+            val key = Base64.encodeToString(hexBytes(keyHex), Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+            keys.put(org.json.JSONObject().put("kty", "oct").put("kid", keyId).put("k", key))
+        }
+        if (keys.length() == 0) return null
+        org.json.JSONObject().put("keys", keys).put("type", "temporary").toString().toByteArray(Charsets.UTF_8)
+    }.getOrNull()
+}
+
+private fun hexBytes(value: String): ByteArray =
+    ByteArray(value.length / 2) { index ->
+        value.substring(index * 2, index * 2 + 2).toInt(16).toByte()
+    }
 
 private object FlowCsvLoader {
     private const val CATALOG_URL = "https://raw.githubusercontent.com/mac-donal/FLOW/main/trimi.csv"
