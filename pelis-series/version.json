@@ -1,7 +1,7 @@
 {
-  "versionCode": 41,
-  "versionName": "1.1.4",
-  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.1.4.apk",
-  "sha256": "91f0e916f047d7f5cf485911a7cdfa833db345b52e9a0aa9e7ef481a586ecaee",
-  "notes": "Acceso exclusivo a Superflash, sin lista M3U, categorías duplicadas eliminadas y cuenta simplificada."
+  "versionCode": 42,
+  "versionName": "1.1.5",
+  "apkUrl": "https://raw.githubusercontent.com/braiancorto-alt/mundo-play-updates/main/pelis-series/Mundo-Play-Pelis-y-Series-1.1.5.apk",
+  "sha256": "b532c215c5509d5e29d19b0b506263cc669744443b0517534f1939681055eaac",
+  "notes": "Encabezado renovado: búsqueda destacada, iconos unificados y accesos más claros a actualización y ajustes."
 }
